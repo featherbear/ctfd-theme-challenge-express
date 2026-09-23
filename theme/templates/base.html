@@ -1,12 +1,15 @@
 {% set theme_settings = Configs.theme_settings or {} %}
 {% set app_name = theme_settings.get('app_name', '') | trim or 'Challenge Express' %}
 {% set app_logo = theme_settings.get('logo', '') | trim %}
+{% set page_title = (title or '') | trim %}
+{% if page_title in ['', 'None'] %}{% set page_title = (Configs.ctf_name or '') | trim %}{% endif %}
+{% set display_title = app_name ~ (' - ' ~ page_title if page_title not in ['', 'None'] and page_title != app_name else '') %}
 <!doctype html>
 <html lang="{{ get_locale() }}" data-bs-theme="light">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{{ app_name }} - {{ title or Configs.ctf_name }}</title>
+  <title>{{ display_title }}</title>
   {{ meta | safe }}
   {% block stylesheets %}{{ Assets.css("assets/scss/main.scss") }}{% endblock %}
   <link rel="stylesheet" href="{{ request.script_root }}/themes/challenge-express/static/css/express.css">
@@ -27,7 +30,7 @@
 </head>
 <body class="{% block body_class %}{% endblock %}">
   <div class="express-window">
-    <header class="express-title window-drag-handle" tabindex="0" role="button" aria-label="Move application window. Drag or use arrow keys." title="Drag to move, or focus and use arrow keys">{% if app_logo %}<img class="express-brand-icon" src="{{ app_logo }}" alt="" draggable="false">{% else %}<i class="fas fa-envelope" aria-hidden="true"></i>{% endif %} <span id="window-title">{{ app_name }} - {{ title or Configs.ctf_name }}</span></header>
+    <header class="express-title window-drag-handle" tabindex="0" role="button" aria-label="Move application window. Drag or use arrow keys." title="Drag to move, or focus and use arrow keys">{% if app_logo %}<img class="express-brand-icon" src="{{ app_logo }}" alt="" draggable="false">{% else %}<i class="fas fa-envelope" aria-hidden="true"></i>{% endif %} <span id="window-title">{{ display_title }}</span></header>
     {% block navigation %}{% include "components/navbar.html" %}{% endblock %}
     <main id="main-content">{% block content %}{% endblock %}</main>
     <footer class="express-status">{{ Configs.ctf_name }} <span>Powered by <a href="https://ctfd.io">CTFd</a></span></footer>
