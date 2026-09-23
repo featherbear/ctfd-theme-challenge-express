@@ -46,6 +46,7 @@ Click **Update** inside the builder, then **Update** on the Theme page to save. 
 ## Interactions
 
 - Select a category or use Search to narrow the list.
+- Folders start with All Challenges and Unread Challenges, followed by a divider and category folders. Unread contains only unsolved challenges; solving one returns to the list and removes it. The address bar always shows `Folders / [folder name]`.
 - Open a subject to read a challenge. The list is hidden until **Back to challenges**.
 - Reply with a flag. Read/unread state follows the server's solve result.
 - Drag headers to reorder columns, or drag their right edges to resize.

@@ -6,7 +6,7 @@
   <button id="help-button" type="button"><i class="fas fa-question-circle" aria-hidden="true"></i> Help</button>
   <label for="search">Search</label><input id="search" type="search" placeholder="Find a challenge">
 </div>
-<div class="express-address">Address <span id="address">All Challenges</span></div>
+<div class="express-address">Address <span id="address">Folders / All Challenges</span></div>
 <div class="express-workspace">
   <aside class="express-sidebar" aria-label="Challenge categories"><h2>Folders</h2><div id="folders"></div><p id="progress" aria-live="polite"></p></aside>
   <section class="express-main" aria-label="Challenges">
@@ -26,6 +26,6 @@
 {% endblock %}
 {% block scripts %}
 {{ Assets.js("assets/js/page.js") }}
-<script defer src="{{ request.script_root }}/themes/challenge-express/static/js/columns.js"></script>
-<script defer src="{{ request.script_root }}/themes/challenge-express/static/js/express.js"></script>
+<script defer src="{{ request.script_root }}/themes/challenge-express/static/js/columns.js?v=2"></script>
+<script defer src="{{ request.script_root }}/themes/challenge-express/static/js/express.js?v=2"></script>
 {% endblock %}
