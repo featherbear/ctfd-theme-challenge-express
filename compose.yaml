@@ -1,0 +1,27 @@
+services:
+  data-init:
+    image: ctfd/ctfd:3.8.7
+    user: "0:0"
+    entrypoint: ["chown", "1001:1001", "/var/lib/ctfd"]
+    volumes:
+      - ctfd-data:/var/lib/ctfd
+  ctfd:
+    image: ctfd/ctfd:3.8.7
+    depends_on:
+      data-init:
+        condition: service_completed_successfully
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment:
+      DATABASE_URL: sqlite:////var/lib/ctfd/ctfd.db
+      SECRET_KEY: challenge-express-local-development-only
+      WORKERS: "1"
+      REVERSE_PROXY: "false"
+      UPLOAD_FOLDER: /var/lib/ctfd/uploads
+      LOG_FOLDER: /var/lib/ctfd/logs
+    volumes:
+      - ctfd-data:/var/lib/ctfd
+      - ./theme:/opt/CTFd/CTFd/themes/challenge-express:ro
+      - ./dev:/opt/express-dev:ro
+volumes:
+  ctfd-data:

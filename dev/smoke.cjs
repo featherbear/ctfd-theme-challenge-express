@@ -1,0 +1,104 @@
+// PLAYWRIGHT_MODULE can point at an existing Playwright installation.
+const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
+const assert = require('node:assert/strict');
+const base = process.env.CTFD_URL || 'http://localhost:8000';
+(async () => {
+  const browser = await chromium.launch({ channel: 'chrome', headless: true });
+  const page = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
+  const errors = [];
+  page.on('pageerror', error => errors.push(`${page.url()}: ${error.stack}`));
+  try {
+    for (let attempt = 0; attempt < 30; attempt++) {
+      try { if ((await page.request.get(`${base}/login`)).ok()) break; } catch {}
+      if (attempt === 29) throw new Error('CTFd did not become ready');
+      await new Promise(resolve => setTimeout(resolve, 1000));
+    }
+    const username = `test-${Date.now()}`;
+    await page.goto(`${base}/register`);
+    await page.locator('[name=name]').fill(username);
+    await page.locator('[name=email]').fill(`${username}@example.test`);
+    await page.locator('[name=password]').fill('express-browser-test');
+    await page.locator('[type=submit]').click();
+    await page.waitForURL('**/challenges');
+    await page.locator('.open-challenge').first().waitFor();
+    const welcome = page.getByRole('button', { name: 'Welcome to your inbox', exact: true });
+    assert.equal(await welcome.locator('..').locator('..').getAttribute('class'), 'unread');
+    await welcome.click();
+    await page.locator('#flag').waitFor();
+    assert.equal(await page.locator('.message-list').isVisible(), false);
+    await page.getByText('View hint', { exact: true }).click();
+    await page.getByText('Look closely at the message above.', { exact: false }).waitFor();
+    await page.locator('#back').click();
+    assert.equal(await welcome.locator('..').locator('..').getAttribute('class'), 'unread');
+    await welcome.click();
+    await page.locator('#flag').fill('wrong');
+    await page.getByRole('button', { name: 'Send', exact: true }).click();
+    await page.waitForFunction(() => document.querySelector('#submission-status').textContent.includes('Incorrect'));
+    await page.locator('#flag').fill('flag{youve_got_mail}');
+    await page.getByRole('button', { name: 'Send', exact: true }).click();
+    await page.waitForFunction(() => document.querySelector('#submission-status').textContent.includes('Correct'));
+    await page.reload();
+    await page.getByText('Correct flag received.', { exact: true }).waitFor();
+    await page.locator('#back').click();
+    assert.equal(await welcome.locator('..').locator('..').getAttribute('class'), 'read');
+    await page.locator('#search').fill('nothing-matches');
+    assert.equal(await page.locator('#challenge-rows tr').count(), 0);
+    await page.getByText('No challenges found.', { exact: true }).waitFor();
+    await page.locator('#search').fill('');
+    const subject = page.locator('th[data-column=subject] .column-label');
+    await subject.focus();
+    await page.keyboard.press('Alt+ArrowLeft');
+    assert.equal(await page.locator('thead th').first().getAttribute('data-column'), 'subject');
+    const resize = page.locator('th[data-column=subject] .column-resize');
+    const before = await page.locator('th[data-column=subject]').evaluate(el => el.offsetWidth);
+    await resize.focus(); await page.keyboard.press('ArrowRight');
+    assert.ok(await page.locator('th[data-column=subject]').evaluate(el => el.offsetWidth) > before);
+    await page.screenshot({ path: 'dev/desktop.png', fullPage: true });
+    await welcome.click();
+    await page.locator('#flag').waitFor();
+    await page.screenshot({ path: 'dev/reader.png', fullPage: true });
+    const score = await page.request.get(`${base}/api/v1/scoreboard`);
+    const data = await score.json();
+    assert.equal(data.data.find(user => user.name === username).score, 50);
+    for (const path of ['/scoreboard','/users','/user','/settings','/notifications','/']) {
+      const response = await page.goto(base + path);
+      assert.equal(response.status(), 200, path);
+      assert.ok(await page.locator('.express-title').isVisible(), path);
+      if (path === '/scoreboard' || path === '/user') await page.locator('canvas').first().waitFor();
+      assert.equal(await page.locator('.fa-language, [x-data="LanguageForm"]').count(), 0);
+      if (path === '/scoreboard') await page.screenshot({path:'dev/scoreboard.png',fullPage:true});
+      if (path === '/user') await page.screenshot({path:'dev/profile.png',fullPage:true});
+    }
+    await page.goto(`${base}/challenges`);
+    await page.locator('.open-challenge').first().waitFor();
+    assert.equal(await page.locator('thead th').first().getAttribute('data-column'), 'status');
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.screenshot({ path: 'dev/mobile.png', fullPage: true });
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'mobile overflow');
+    await welcome.click();
+    await page.locator('#flag').waitFor();
+    assert.equal(await page.locator('.message-list').isVisible(), false);
+    await page.screenshot({ path: 'dev/mobile-reader.png', fullPage: true });
+    await page.goto(`${base}/logout`);
+    await page.goto(`${base}/login`);
+    await page.setViewportSize({width:1440,height:1000});
+    await page.screenshot({path:'dev/login.png',fullPage:true});
+    assert.ok(await page.getByRole('heading', {name:'Challenge Express',exact:true}).isVisible());
+    await page.setViewportSize({width:390,height:844});
+    await page.screenshot({path:'dev/login-mobile.png',fullPage:true});
+    assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'login mobile overflow');
+    await page.locator('[name=name]').fill(username);
+    await page.locator('[name=password]').fill('incorrect-password');
+    await page.locator('[type=submit]').click();
+    await page.locator('.alert-danger').waitFor();
+    assert.ok(await page.locator('.xp-logon').isVisible());
+    await page.locator('[name=name]').fill(username);
+    await page.locator('[name=password]').fill('express-browser-test');
+    await page.locator('[type=submit]').click();
+    await page.waitForURL('**/challenges');
+    await welcome.waitFor();
+    assert.equal(await welcome.locator('..').locator('..').getAttribute('class'), 'read');
+    assert.deepEqual(errors, []);
+    console.log(`PASS: registration, login, real hints, incorrect/correct flags, solve persistence, 50-point scoreboard, search, columns, player pages, desktop and mobile. User: ${username}`);
+  } finally { await browser.close(); }
+})().catch(error => { console.error(error); process.exitCode = 1; });

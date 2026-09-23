@@ -1,0 +1,17 @@
+{
+  "name": "Challenge Express",
+  "platform": "web",
+  "direction": "Windows XP / Outlook Express",
+  "tokens": {
+    "desktop": "#3d6c99",
+    "chrome": "#ece9d8",
+    "blue": "#245edb",
+    "selection": "#316ac5",
+    "text": "#222222",
+    "border": "#aca899",
+    "fontFamily": "Tahoma, Verdana, sans-serif",
+    "baseFontSize": "12px",
+    "mobileBreakpoint": "760px"
+  },
+  "stateRule": "solved = read; unsolved = unread"
+}

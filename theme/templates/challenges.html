@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block content %}
+{% include "components/errors.html" %}
+<div class="express-toolbar">
+  <button id="all-challenges" type="button"><i class="fas fa-inbox" aria-hidden="true"></i> All Challenges</button>
+  <button id="help-button" type="button"><i class="fas fa-question-circle" aria-hidden="true"></i> Help</button>
+  <label for="search">Search</label><input id="search" type="search" placeholder="Find a challenge">
+</div>
+<div class="express-address">Address <span id="address">All Challenges</span></div>
+<div class="express-workspace">
+  <aside class="express-sidebar" aria-label="Challenge categories"><h2>Folders</h2><div id="folders"></div><p id="progress" aria-live="polite"></p></aside>
+  <section class="express-main" aria-label="Challenges">
+    <h1 id="folder-heading">All Challenges</h1>
+    <p id="board-status" role="status">Loading challenges...</p>
+    <button id="retry" hidden type="button">Try again</button>
+    <div class="message-list">
+      <table><thead><tr><th>Status</th><th>Subject</th><th>Category</th><th>Points</th></tr></thead><tbody id="challenge-rows"></tbody></table>
+    </div>
+    <section id="reader" hidden aria-label="Challenge message">
+      <button id="back" type="button">Back to challenges</button>
+      <div id="message"></div>
+    </section>
+  </section>
+</div>
+<dialog id="help-dialog"><h2>{{ app_name }}</h2><p>Open a challenge to read its message. Reply with the flag to solve it.</p><p>Unsolved challenges appear as unread mail. Solved challenges appear as read mail.</p><p>Drag column headers to reorder them, or their edges to resize. With a header focused, use Alt + Left/Right to reorder.</p><form method="dialog"><button>Close</button></form></dialog>
+{% endblock %}
+{% block scripts %}
+{{ Assets.js("assets/js/page.js") }}
+<script defer src="{{ request.script_root }}/themes/challenge-express/static/js/columns.js"></script>
+<script defer src="{{ request.script_root }}/themes/challenge-express/static/js/express.js"></script>
+{% endblock %}
