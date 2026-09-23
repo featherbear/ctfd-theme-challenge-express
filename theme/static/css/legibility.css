@@ -1,4 +1,6 @@
 /* Explicit light surfaces keep inherited core pages and charts readable. */
+.message-header,.message-body{padding-left:24px}
+.message-body{max-width:none;width:100%;padding-right:24px}
 /* Core marks input padding important; reserve space for the search icon. */
 .express-search #search{padding-left:28px!important}
 .express-search{position:relative;min-width:100px}.express-search>.fa-search{position:absolute;left:9px;top:50%;transform:translateY(-50%);color:#465365;pointer-events:none}.express-toolbar .express-search input{width:100%;padding-left:28px}.express-window.is-draggable{position:fixed;width:calc(100% - 40px);height:calc(100dvh - 75px);min-height:0;margin:0;z-index:20;overflow:hidden}.express-window.is-draggable>#main-content{min-height:0;overflow:auto;flex:1}.express-window.is-draggable>.express-title,.express-window.is-draggable>.express-status,.express-window.is-draggable>.navbar{flex-shrink:0}.window-drag-handle{cursor:grab;touch-action:none;user-select:none}.window-drag-handle.is-dragging{cursor:grabbing}.window-drag-handle:focus-visible{outline:2px dotted white;outline-offset:-4px}@media(max-width:760px){.express-search{flex:1}.express-window.is-draggable{width:calc(100% - 10px);height:calc(100dvh - 48px)}}
