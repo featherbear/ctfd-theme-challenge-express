@@ -56,7 +56,7 @@ Click **Update** inside the builder, then **Update** on the Theme page to save. 
 
 ## Browser verification
 
-`dev/smoke.cjs` runs a real Chrome session against the Docker instance. It creates a fresh test account on each run and leaves it in the local database for inspection. It checks:
+`dev/tests/smoke.cjs` runs a real Chrome session against the Docker instance. It creates a fresh test account on each run and leaves it in the local database for inspection. It checks:
 
 - Registration, logout, and login.
 - Opening a challenge leaves it unsolved and hides the list.
@@ -68,23 +68,23 @@ Click **Update** inside the builder, then **Update** on the Theme page to save. 
 - Scoreboard, users, private profile, settings, notifications, and home page rendering.
 - Desktop 1440 x 1000 and mobile 390 x 844, including horizontal overflow and browser exceptions.
 
-Run using an available Playwright installation with Chrome installed:
+Run from the project root using an available Playwright installation with Chrome installed:
 
 ```sh
-PLAYWRIGHT_MODULE=/absolute/path/to/node_modules/playwright node dev/smoke.cjs
+PLAYWRIGHT_MODULE=/absolute/path/to/node_modules/playwright node dev/tests/smoke.cjs
 ```
 
-Screenshots are saved to `dev/desktop.png`, `dev/reader.png`, `dev/mobile.png`, and `dev/mobile-reader.png`.
+Screenshots are saved under `dev/screenshots/`, including `desktop.png`, `reader.png`, `mobile.png`, and `mobile-reader.png`.
 
-Login (desktop/mobile), scoreboard, and profile screenshots are also captured. The login checks include invalid credentials and successful authentication. `dev/contrast.cjs` checks rendered text against its background across nine representative pages, plus chart palette contrast. Run it with the same `PLAYWRIGHT_MODULE` environment variable. Chart labels and series use explicit dark colors on white; profile timestamps use compact labels to prevent clipping.
+Login (desktop/mobile), scoreboard, and profile screenshots are also captured. The login checks include invalid credentials and successful authentication. `dev/tests/contrast.cjs` checks rendered text against its background across nine representative pages, plus chart palette contrast. Run it with the same `PLAYWRIGHT_MODULE` environment variable. Chart labels and series use explicit dark colors on white; profile timestamps use compact labels to prevent clipping.
 
 The shared template includes a small workaround for CTFd 3.8.7's profile graph: its category loops otherwise evaluate before the asynchronous solves response arrives.
 
-`dev/branding.cjs` verifies login drag boundaries, keyboard movement, viewport resizing, short-height scrolling, the admin Theme Settings builder, custom logo/name rendering, and default fallback. It temporarily changes theme settings and restores their previous value. Run with the same `PLAYWRIGHT_MODULE` variable against the local seeded instance.
+`dev/tests/branding.cjs` verifies login drag boundaries, keyboard movement, viewport resizing, short-height scrolling, the admin Theme Settings builder, custom logo/name rendering, and default fallback. It temporarily changes theme settings and restores their previous value. Run with the same `PLAYWRIGHT_MODULE` variable against the local seeded instance.
 
 ## Original standalone prototype
 
-Open `index.html` directly to preview the original eight-challenge prototype without Docker. Its `app.js` uses demo flags and local-storage progress. It is separate from the installable theme and does not connect to CTFd.
+Open `prototype/index.html` directly to preview the original eight-challenge prototype without Docker. Its `app.js` uses demo flags and local-storage progress. It is separate from the installable theme and does not connect to CTFd.
 
 ## Files
 
@@ -92,6 +92,7 @@ Open `index.html` directly to preview the original eight-challenge prototype wit
 - `theme/static/`: XP styling and server-backed challenge interactions.
 - `compose.yaml`: pinned, local Docker environment.
 - `dev/seed.py`: local accounts, settings, and sample challenges.
-- `dev/smoke.cjs`: repeatable browser integration test.
-- `index.html`, `styles.css`, `accessibility.css`, `app.js`, `columns.js`: standalone prototype.
+- `dev/tests/`: repeatable browser integration, branding, and contrast checks.
+- `dev/screenshots/`: generated browser screenshots (ignored by Git).
+- `prototype/`: standalone HTML/CSS/JavaScript prototype, separate from CTFd.
 - `PRODUCT.md`, `DESIGN.md`: product requirements and visual direction.
