@@ -1,6 +1,6 @@
 (() => {
-  const box = document.querySelector('.xp-logon');
-  const handle = box?.querySelector('.logon-drag-handle');
+  const box = document.querySelector('.xp-logon') || document.querySelector('.express-window');
+  const handle = box?.querySelector('.logon-drag-handle, .window-drag-handle');
   if (!handle) return;
   let drag;
   const bounds = () => {
@@ -9,7 +9,7 @@
       x: viewport?.offsetLeft || 0,
       y: viewport?.offsetTop || 0,
       width: viewport?.width || document.documentElement.clientWidth,
-      height: viewport?.height || window.innerHeight
+      height: Math.max(0, (viewport?.height || window.innerHeight) - (box.classList.contains('express-window') ? 34 : 0))
     };
   };
   function move(x, y) {

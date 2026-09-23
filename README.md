@@ -50,9 +50,11 @@ Click **Update** inside the builder, then **Update** on the Theme page to save. 
 - Open a subject to read a challenge. The list is hidden until **Back to challenges**.
 - Reply with a flag. Read/unread state follows the server's solve result.
 - Drag headers to reorder columns, or drag their right edges to resize.
+- Click a column header to toggle ascending/descending sorting. Points sort numerically; Status sorts unsolved first in ascending order. Sorting survives search/category changes and resets on refresh. Dragging shows a floating header and drop marker, with an animated reorder that respects reduced-motion preferences.
 - Keyboard: Alt + Left/Right on a header reorders; Left/Right on a resize handle adjusts width.
 - Column layout resets on refresh.
 - Drag the login window by its blue title bar. The entire box stays within the viewport, including after resizing. Short viewports scroll the window's contents internally.
+- The main application window also moves by its blue title bar and stays above the taskbar. Both windows support arrow-key movement when the title bar is focused.
 - Keyboard: focus the login title bar and use arrow keys to move 10 pixels, or Shift + arrow keys for 1 pixel. Position resets on refresh.
 
 ## Browser verification
