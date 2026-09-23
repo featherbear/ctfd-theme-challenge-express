@@ -34,11 +34,12 @@ The message reader uses CTFd's APIs for challenge data, hints, attachments, flag
 
 **Current integration scope:** the standard flag-submission reader is tested. Third-party challenge plugins with custom JavaScript or input UIs need an adapter. Advanced challenge features such as solution tabs, ratings, and solve-sharing controls are not yet exposed by this reader. Email delivery for password reset/verification requires a mail-configured CTFd instance and was not tested locally.
 
-## Custom branding
+## Theme settings
 
 Open **Admin Panel > Config > Theme > Theme Settings > Build**.
 
 - **App name** (`app_name`): overrides Challenge Express in the login heading, browser/window titles, taskbar, and help. Blank uses Challenge Express. The event name remains separately configurable in General settings.
+- **Default challenge order** (`challenge_order`): `id` for lowest ID first (the default), or `name` for alphabetical challenge names. Applies on page load across all folders; players can override it using column headers until they reload.
 - **Logo URL** (`logo`): an uploaded image path (such as `/files/.../logo.png`) or HTTPS image URL. Appears in the login banner and application title bar, scaled without cropping. Blank restores the original icons.
 
 Click **Update** inside the builder, then **Update** on the Theme page to save. Refresh player pages to see the changes.
@@ -46,7 +47,7 @@ Click **Update** inside the builder, then **Update** on the Theme page to save. 
 ## Interactions
 
 - Select a category or use Search to narrow the list.
-- Folders start with All Challenges and Unread Challenges, followed by a divider and category folders. Unread contains only unsolved challenges; solving one returns to the list and removes it. The address bar always shows `Folders / [folder name]`.
+- Folders start with All Challenges and Unsolved Challenges, followed by a divider and category folders. Unsolved Challenges contains only unsolved challenges; solving one returns to the list and removes it. The address bar always shows `Folders / [folder name]`.
 - Open a subject to read a challenge. The list is hidden until **Back to challenges**.
 - Reply with a flag. Read/unread state follows the server's solve result.
 - Drag headers to reorder columns, or drag their right edges to resize.

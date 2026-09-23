@@ -20,7 +20,7 @@
     const unread = challenges.filter(c => !c.solved_by_me);
     const folderButton = (name, type, count) => `<button type="button" class="${view === type && folder === name ? 'active' : ''}" data-view="${type}" data-folder="${escape(name)}"><i class="fas fa-${type === 'unread' ? 'envelope' : 'folder'}" aria-hidden="true"></i>${escape(name)} (${count})</button>`;
     $('#folders').innerHTML = folderButton('All Challenges', 'all', unread.length)
-      + folderButton('Unread Challenges', 'unread', unread.length)
+      + folderButton('Unsolved Challenges', 'unread', unread.length)
       + '<hr class="folder-divider">'
       + categories.map(category => folderButton(category, 'category', unread.filter(c => c.category === category).length)).join('');
     $('#progress').textContent = `${challenges.filter(c => c.solved_by_me).length} of ${challenges.length} challenges solved`;
@@ -35,7 +35,7 @@
   }
   async function load() {
     $('#retry').hidden = true;
-    try { challenges = await api('/challenges'); render(); }
+    try { challenges = (await api('/challenges')).sort((a, b) => a.id - b.id); render(); }
     catch(error) { $('#board-status').textContent = error.message; $('#retry').hidden = false; }
   }
   function back() {
@@ -92,7 +92,7 @@
           await load();
           if (ticket === generation && view === 'unread' && ['correct', 'already_solved'].includes(result.status)) {
             back();
-            $('#board-status').textContent = 'Challenge solved. Removed from Unread Challenges.';
+            $('#board-status').textContent = 'Challenge solved. Removed from Unsolved Challenges.';
             $('#folders [data-view="unread"]').focus();
           }
         } catch(error) { status.textContent = error.message; status.className = 'error'; }

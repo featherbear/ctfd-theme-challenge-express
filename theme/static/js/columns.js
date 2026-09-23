@@ -4,7 +4,8 @@
   const header = table.tHead.rows[0];
   const keys = ['status', 'subject', 'category', 'points'];
   const minimum = { status: 55, subject: 130, category: 90, points: 65 };
-  let order = [...keys], widths = null, sort = null;
+  let order = [...keys], widths = null;
+  let sort = window.init.themeSettings?.challenge_order === 'name' ? { key: 'subject', direction: 1 } : null;
   const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' });
   function apply() {
     if (sort) {
@@ -44,9 +45,10 @@
   [...header.cells].forEach((cell, index) => {
     const key = keys[index], label = cell.textContent;
     cell.dataset.column = key;
-    cell.setAttribute('aria-sort', 'none');
+    cell.setAttribute('aria-sort', sort?.key === key ? 'ascending' : 'none');
     cell.innerHTML = `<button type="button" class="column-label" aria-label="${label} column. Click to sort. Drag or use Alt and arrow keys to move.">${label}<span class="column-sort" aria-hidden="true"></span></button><button type="button" class="column-resize" aria-label="Resize ${label} column"></button>`;
     const drag = cell.firstElementChild, resize = cell.lastElementChild;
+    if (sort?.key === key) cell.querySelector('.column-sort').textContent = '▲';
     let suppressClick = false;
     drag.addEventListener('click', event => {
       if (suppressClick && event.detail !== 0) { suppressClick = false; return; }
