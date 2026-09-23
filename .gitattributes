@@ -1,0 +1,2 @@
+# Generated bundles can contain meaningful whitespace inside string literals.
+theme/static/dist/** -whitespace linguist-generated=true
