@@ -36,6 +36,13 @@
   {% include "components/snackbar.html" %}
   {% include "components/notifications.html" %}
   <script>
+    // Keep both inherited user profiles in visual and reading order:
+    // solve breakdowns, score history, awards, then solves.
+    const userGraphs = document.querySelector('[x-data="UserGraphs"]');
+    if (userGraphs) {
+      const firstSection = [...userGraphs.parentElement.children].find(element => element.classList.contains('row'));
+      if (firstSection && firstSection !== userGraphs) firstSection.before(userGraphs);
+    }
     // CTFd 3.8.7 evaluates profile category loops before its async solves load.
     // Guard the inherited template until UserGraphs has received the response.
     document.querySelectorAll('template[x-for="category in getCategoryBreakdown()"]')
