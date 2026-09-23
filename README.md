@@ -1,8 +1,27 @@
 # Challenge Express
 
-A Windows XP / Outlook Express-inspired CTFd theme, tested against **CTFd 3.8.7 in individual mode** using Docker. Categories are folders, challenge titles are subjects, and challenge descriptions are messages. Solved challenges are read; opening an unsolved challenge never changes its state.
+A Windows XP / Outlook Express-inspired theme for **CTFd 3.8.7 in individual mode**, with a Svelte 5 challenges page. Categories are folders, challenges are messages, and solved challenges appear as read mail.
 
-## Run CTFd locally
+## Install
+
+1. Copy `theme/` to `CTFd/themes/challenge-express/`.
+2. Keep CTFd's bundled `core` theme installed and `THEME_FALLBACK` enabled (the default).
+3. Select `challenge-express` under **Admin Panel > Config > Theme**.
+
+Compiled assets are included. The CTFd server does not need Node.js.
+
+## Build
+
+Requires **Node.js 22.12+** or a compatible newer LTS. From the project root:
+
+```sh
+npm ci
+npm run build
+```
+
+Use `npm run dev` to rebuild automatically while editing. Source lives in `frontend/`; the build updates `theme/static/dist/` and `theme/templates/components/challenges-script.html`. Include both generated outputs when committing or deploying.
+
+## Run locally
 
 ```sh
 docker compose up -d
@@ -10,93 +29,44 @@ docker compose exec -e PYTHONPATH=/opt/CTFd ctfd python /opt/express-dev/seed.py
 docker compose restart ctfd
 ```
 
-Open **http://localhost:8000/challenges** after startup completes.
+Open **http://localhost:8000/challenges**.
 
 | Account | Username | Password |
 | --- | --- | --- |
 | Player | `player` | `express-player-local` |
-| Administrator | `admin` | `express-admin-local` |
+| Admin | `admin` | `express-admin-local` |
 
-The seed installs three sample challenges and configures individual mode. It preserves existing accounts and solves, but reapplies local event settings. Use it only with this local fixture. The welcome flag is `flag{youve_got_mail}`.
+The seed adds three sample challenges and reapplies local event settings. The welcome flag is `flag{youve_got_mail}`. This localhost-only setup uses SQLite and a fixed development secret; use it for local testing only.
 
-This development Compose setup binds to localhost and uses SQLite, a persistent named volume, and a fixed development secret. It is intended for local testing. `docker compose down` stops it and retains the database. Theme files are mounted read-only; restart the CTFd service after template changes to clear template caches.
-
-## Install on an existing CTFd 3.8.7 instance
-
-1. Copy `theme/` to `CTFd/themes/challenge-express/`.
-2. Keep CTFd's bundled `core` theme installed and `THEME_FALLBACK` enabled (the default).
-3. Select `challenge-express` under **Admin Panel > Config > Theme**.
-4. Use individual user mode.
-
-The theme overrides the shared window, navigation, login prompt, and challenge board. Registration, password reset, scoreboard, users, profiles, settings, custom pages, notifications, and error pages use version-matched core templates and compiled assets within the XP-style shell. Navigation has no language selector. No theme build step is needed.
-
-The message reader uses CTFd's APIs for challenge data, hints, attachments, flag attempts, and solved state. Markdown is taken from CTFd's server-rendered challenge view. Flags and progress are not validated or stored in browser storage.
-
-**Current integration scope:** the standard flag-submission reader is tested. Third-party challenge plugins with custom JavaScript or input UIs need an adapter. Advanced challenge features such as solution tabs, ratings, and solve-sharing controls are not yet exposed by this reader. Email delivery for password reset/verification requires a mail-configured CTFd instance and was not tested locally.
+After rebuilding, restart CTFd to refresh cached templates, then reload the browser. `docker compose down` stops the service while retaining its data.
 
 ## Theme settings
 
-Open **Admin Panel > Config > Theme > Theme Settings > Build**.
+Open **Admin Panel > Config > Theme > Theme Settings > Build**:
 
-- **App name** (`app_name`): overrides Challenge Express in the login heading, browser/window titles, taskbar, and help. Blank uses Challenge Express. The event name remains separately configurable in General settings.
-- **Default challenge order** (`challenge_order`): `id` for lowest ID first (the default), or `name` for alphabetical challenge names. Applies on page load across all folders; players can override it using column headers until they reload.
-- **Logo URL** (`logo`): an uploaded image path (such as `/files/.../logo.png`) or HTTPS image URL. Appears in the login banner and application title bar, scaled without cropping. Blank restores the original icons.
+- **App name:** defaults to Challenge Express.
+- **Logo URL:** an uploaded file path or HTTPS image URL. Blank uses the original icons.
+- **Default challenge order:** lowest ID first or alphabetical name.
 
-Click **Update** inside the builder, then **Update** on the Theme page to save. Refresh player pages to see the changes.
+Click **Update** in the builder, then **Update** on the Theme page.
 
-## Interactions
+## Features and compatibility
 
-- Select a category or use Search to narrow the list.
-- Folders start with All Challenges and Unsolved Challenges, followed by a divider and category folders. Unsolved Challenges contains only unsolved challenges; solving one returns to the list and removes it. The address bar always shows `Folders / [folder name]`.
-- Open a subject to read a challenge. The list is hidden until **Back to challenges**.
-- Reply with a flag. Read/unread state follows the server's solve result.
-- Drag headers to reorder columns, or drag their right edges to resize.
-- Click a column header to toggle ascending/descending sorting. Points sort numerically; Status sorts unsolved first in ascending order. Sorting survives search/category changes and resets on refresh. Dragging shows a floating header and drop marker, with an animated reorder that respects reduced-motion preferences.
-- Keyboard: Alt + Left/Right on a header reorders; Left/Right on a resize handle adjusts width.
-- Column layout resets on refresh.
-- Drag the login window by its blue title bar. The entire box stays within the viewport, including after resizing. Short viewports scroll the window's contents internally.
-- The main application window also moves by its blue title bar and stays above the taskbar. Both windows support arrow-key movement when the title bar is focused.
-- Keyboard: focus the login title bar and use arrow keys to move 10 pixels, or Shift + arrow keys for 1 pixel. Position resets on refresh.
+- Category folders, search, unsolved filtering, and category-aware progress.
+- Challenge descriptions, tags, attachments, hints, and server-validated flags.
+- Sortable, resizable, draggable columns and draggable XP windows.
+- Informational feedback for the `delayed-result` plugin's pending submissions.
 
-## Browser verification
+Standard flag submissions are tested. Plugins with custom input UIs need adapters. Solution tabs, ratings, and solve-sharing controls are not exposed. Other pages use CTFd's core templates inside the themed shell.
 
-`dev/tests/smoke.cjs` runs a real Chrome session against the Docker instance. It creates a fresh test account on each run and leaves it in the local database for inspection. It checks:
+## Tests
 
-- Registration, logout, and login.
-- Opening a challenge leaves it unsolved and hides the list.
-- A real free hint unlock.
-- Incorrect and correct server-validated submissions.
-- Solved state after reload and a new login.
-- The player's 50-point scoreboard result.
-- Search, empty results, column reordering/resizing, and layout reset.
-- Scoreboard, users, private profile, settings, notifications, and home page rendering.
-- Desktop 1440 x 1000 and mobile 390 x 844, including horizontal overflow and browser exceptions.
-
-Run from the project root using an available Playwright installation with Chrome installed:
+With local CTFd running, use an existing Playwright installation and Chrome:
 
 ```sh
 PLAYWRIGHT_MODULE=/absolute/path/to/node_modules/playwright node dev/tests/smoke.cjs
 ```
 
-Screenshots are saved under `dev/screenshots/`, including `desktop.png`, `reader.png`, `mobile.png`, and `mobile-reader.png`.
+Additional checks live in `dev/tests/` and run the same way. Some create local test accounts or temporarily change theme settings. Screenshots are saved to `dev/screenshots/`.
 
-Login (desktop/mobile), scoreboard, and profile screenshots are also captured. The login checks include invalid credentials and successful authentication. `dev/tests/contrast.cjs` checks rendered text against its background across nine representative pages, plus chart palette contrast. Run it with the same `PLAYWRIGHT_MODULE` environment variable. Chart labels and series use explicit dark colors on white; profile timestamps use compact labels to prevent clipping.
-
-The shared template includes a small workaround for CTFd 3.8.7's profile graph: its category loops otherwise evaluate before the asynchronous solves response arrives.
-
-`dev/tests/branding.cjs` verifies login drag boundaries, keyboard movement, viewport resizing, short-height scrolling, the admin Theme Settings builder, custom logo/name rendering, and default fallback. It temporarily changes theme settings and restores their previous value. Run with the same `PLAYWRIGHT_MODULE` variable against the local seeded instance.
-
-## Original standalone prototype
-
-Open `prototype/index.html` directly to preview the original eight-challenge prototype without Docker. Its `app.js` uses demo flags and local-storage progress. It is separate from the installable theme and does not connect to CTFd.
-
-## Files
-
-- `theme/templates/`: CTFd shared shell and challenge page.
-- `theme/static/`: XP styling and server-backed challenge interactions.
-- `compose.yaml`: pinned, local Docker environment.
-- `dev/seed.py`: local accounts, settings, and sample challenges.
-- `dev/tests/`: repeatable browser integration, branding, and contrast checks.
-- `dev/screenshots/`: generated browser screenshots (ignored by Git).
-- `prototype/`: standalone HTML/CSS/JavaScript prototype, separate from CTFd.
-- `PRODUCT.md`, `DESIGN.md`: product requirements and visual direction.
+The original standalone demo is in `prototype/`; open `prototype/index.html` without Docker.
