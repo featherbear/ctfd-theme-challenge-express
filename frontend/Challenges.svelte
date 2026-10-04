@@ -89,7 +89,7 @@
     <h1 id="folder-heading">{folder}</h1>
     <p id="board-status" role="status">{loadError || (loading ? 'Loading challenges...' : notice || (visible.length ? '' : 'No challenges found.'))}</p>
     <button id="retry" hidden={!loadError} type="button" onclick={load}>Try again</button>
-    <ChallengeTable challenges={visible} defaultOrder={config.themeSettings?.challenge_order} onopen={open} hidden={reading} />
+    <ChallengeTable challenges={visible} solvesEnabled={challenges.some(c => Number.isInteger(c.solves))} defaultOrder={config.themeSettings?.challenge_order} onopen={open} hidden={reading} />
     <section id="reader" hidden={!reading} aria-label="Challenge message">
       <button id="back" type="button" bind:this={backButton} onclick={() => back()}>Back to challenges</button>
       <div id="message">

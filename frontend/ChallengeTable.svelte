@@ -1,22 +1,24 @@
 <script>
   import { tick, untrack } from 'svelte';
-  let { challenges, defaultOrder, onopen, hidden = false } = $props();
-  const keys = ['status', 'subject', 'category', 'points'];
-  const labels = { status: 'Status', subject: 'Subject', category: 'Category', points: 'Points' };
-  const minimum = { status: 55, subject: 130, category: 90, points: 65 };
+  let { challenges, defaultOrder, onopen, hidden = false, solvesEnabled = false } = $props();
+  const keys = ['status', 'subject', 'category', 'points', 'solves'];
+  const labels = { status: 'Status', subject: 'Subject', category: 'Category', points: 'Points', solves: 'Solves' };
+  const minimum = { status: 55, subject: 130, category: 90, points: 65, solves: 65 };
   const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' });
   let order = $state([...keys]), widths = $state(null), table;
+  let columns = $derived(order.filter(key => key !== 'solves' || solvesEnabled));
   // The administrator's order is a page-load default, not a live override.
   let sort = $state({ key: untrack(() => defaultOrder) === 'name' ? 'subject' : 'id', direction: 1 });
   let mobile = $state(window.innerWidth <= 760);
   let rows = $derived.by(() => {
-    const value = c => ({ status: Number(c.solved_by_me), subject: c.name, category: c.category, points: c.value, id: c.id })[sort.key];
+    const sortKey = sort.key === 'solves' && !solvesEnabled ? 'id' : sort.key;
+    const value = c => ({ status: Number(c.solved_by_me), subject: c.name, category: c.category, points: c.value, solves: c.solves ?? -1, id: c.id })[sortKey];
     return [...challenges].sort((a, b) => {
-      const difference = ['id', 'points', 'status'].includes(sort.key) ? value(a) - value(b) : collator.compare(value(a), value(b));
+      const difference = ['id', 'points', 'status', 'solves'].includes(sortKey) ? value(a) - value(b) : collator.compare(value(a), value(b));
       return difference * sort.direction || a.id - b.id;
     });
   });
-  let tableWidth = $derived(widths ? order.filter(key => !mobile || key !== 'category').reduce((total, key) => total + widths[key], 0) : null);
+  let tableWidth = $derived(widths ? columns.filter(key => !mobile || key !== 'category').reduce((total, key) => total + (widths[key] ?? minimum[key]), 0) : null);
   function capture() {
     widths = Object.fromEntries([...table.tHead.rows[0].cells].map(cell => [cell.dataset.column, cell.getBoundingClientRect().width || minimum[cell.dataset.column]]));
   }
@@ -85,7 +87,7 @@
       const direction = event.key === 'ArrowRight' ? 1 : -1;
       if (resize) { capture(); widths[key] = Math.max(minimum[key], widths[key] + direction * 10); }
       else {
-        const visible = order.filter(k => !mobile || k !== 'category');
+        const visible = columns.filter(k => !mobile || k !== 'category');
         move(key, visible[visible.indexOf(key) + direction]);
       }
     }
@@ -99,8 +101,8 @@
 <div class="message-list" {hidden}>
   <table bind:this={table} style:width={tableWidth ? `${tableWidth}px` : undefined}>
     <thead><tr>
-      {#each order as key (key)}
-        <th data-column={key} style:width={widths ? `${widths[key]}px` : undefined} aria-sort={sort.key === key ? (sort.direction === 1 ? 'ascending' : 'descending') : 'none'}>
+      {#each columns as key (key)}
+        <th data-column={key} style:width={widths ? `${widths[key] ?? minimum[key]}px` : undefined} aria-sort={sort.key === key ? (sort.direction === 1 ? 'ascending' : 'descending') : 'none'}>
           <button type="button" class="column-label" aria-label={`${labels[key]} column. Click to sort. Drag or use Alt and arrow keys to move.`} use:columnControl={{ key }}>
             {labels[key]}<span class="column-sort" aria-hidden="true">{sort.key === key ? (sort.direction === 1 ? '▲' : '▼') : ''}</span>
           </button><button type="button" class="column-resize" aria-label={`Resize ${labels[key]} column`} use:columnControl={{ key, resize: true }}></button>
@@ -110,11 +112,12 @@
     <tbody id="challenge-rows">
       {#each rows as challenge (challenge.id)}
         <tr class={challenge.solved_by_me ? 'read' : 'unread'}>
-          {#each order as key (key)}
+          {#each columns as key (key)}
             <td data-column={key}>
               {#if key === 'status'}<i class={`fas fa-envelope${challenge.solved_by_me ? '-open' : ''}`} role="img" aria-label={challenge.solved_by_me ? 'Solved' : 'Unsolved'}></i>
               {:else if key === 'subject'}<button class="open-challenge" data-id={challenge.id} onclick={() => onopen(challenge.id)}>{challenge.name}</button>
               {:else if key === 'category'}{challenge.category}
+              {:else if key === 'solves'}{challenge.solves ?? '-'}
               {:else}{challenge.value}{/if}
             </td>
           {/each}
