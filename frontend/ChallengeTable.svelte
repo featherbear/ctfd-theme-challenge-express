@@ -10,6 +10,7 @@
   // The administrator's order is a page-load default, not a live override.
   let sort = $state({ key: untrack(() => defaultOrder) === 'name' ? 'subject' : 'id', direction: 1 });
   let mobile = $state(window.innerWidth <= 760);
+  let visibleColumns = $derived(columns.filter(key => !mobile || key !== 'category'));
   let rows = $derived.by(() => {
     const sortKey = sort.key === 'solves' && !solvesEnabled ? 'id' : sort.key;
     const value = c => ({ status: Number(c.solved_by_me), subject: c.name, category: c.category, points: c.value, solves: c.solves ?? -1, id: c.id })[sortKey];
@@ -18,7 +19,37 @@
       return difference * sort.direction || a.id - b.id;
     });
   });
-  let tableWidth = $derived(widths ? columns.filter(key => !mobile || key !== 'category').reduce((total, key) => total + (widths[key] ?? minimum[key]), 0) : null);
+  function fit() {
+    if (!table || hidden) return;
+    const available = table.parentElement.clientWidth;
+    if (!available) return;
+    const next = { status: 60, subject: 130, points: 75, category: 200, solves: 70, ...widths };
+    let remaining = available - visibleColumns.reduce((sum, key) => sum + next[key], 0);
+    if (remaining >= 0) next.subject += remaining;
+    else {
+      for (const key of ['subject', 'category', 'status', 'points', 'solves'].filter(key => visibleColumns.includes(key))) {
+        const reduction = Math.min(-remaining, Math.max(0, next[key] - minimum[key]));
+        next[key] -= reduction; remaining += reduction;
+      }
+      if (remaining < 0) {
+        const total = visibleColumns.reduce((sum, key) => sum + next[key], 0);
+        for (const key of visibleColumns) next[key] *= available / total;
+      }
+    }
+    widths = next;
+  }
+  function observeSize(node) {
+    const observer = new ResizeObserver(fit);
+    observer.observe(node.parentElement);
+    return { destroy() { observer.disconnect(); } };
+  }
+  $effect(() => { visibleColumns; hidden; untrack(fit); });
+  function resizePair(key, delta, initial = widths) {
+    const next = visibleColumns[visibleColumns.indexOf(key) + 1];
+    if (!next) return;
+    const change = Math.max(Math.min(0, minimum[key] - initial[key]), Math.min(delta, Math.max(0, initial[next] - minimum[next])));
+    widths = { ...widths, [key]: initial[key] + change, [next]: initial[next] - change };
+  }
   function capture() {
     widths = Object.fromEntries([...table.tHead.rows[0].cells].map(cell => [cell.dataset.column, cell.getBoundingClientRect().width || minimum[cell.dataset.column]]));
   }
@@ -48,12 +79,12 @@
     function down(event) {
       if (event.button !== 0 || !event.isPrimary) return;
       suppressClick = false; capture();
-      gesture = { x: event.clientX, y: event.clientY, offset: event.clientX - cell.getBoundingClientRect().left, width: widths[key] };
+      gesture = { x: event.clientX, y: event.clientY, offset: event.clientX - cell.getBoundingClientRect().left, width: widths[key], widths: { ...widths } };
       control.setPointerCapture(event.pointerId);
     }
     function pointerMove(event) {
       if (!gesture) return;
-      if (resize) { widths[key] = Math.max(minimum[key], gesture.width + event.clientX - gesture.x); return; }
+      if (resize) { resizePair(key, event.clientX - gesture.x, gesture.widths); return; }
       if (!ghost && Math.hypot(event.clientX - gesture.x, event.clientY - gesture.y) > 5) {
         suppressClick = true;
         ghost = document.createElement('div'); ghost.className = 'column-drag-ghost'; ghost.textContent = labels[key];
@@ -85,7 +116,7 @@
       if (!['ArrowLeft', 'ArrowRight'].includes(event.key) || (!resize && !event.altKey)) return;
       event.preventDefault();
       const direction = event.key === 'ArrowRight' ? 1 : -1;
-      if (resize) { capture(); widths[key] = Math.max(minimum[key], widths[key] + direction * 10); }
+      if (resize) { capture(); resizePair(key, direction * 10); }
       else {
         const visible = columns.filter(k => !mobile || k !== 'category');
         move(key, visible[visible.indexOf(key) + direction]);
@@ -99,13 +130,13 @@
 
 <svelte:window onresize={() => mobile = window.innerWidth <= 760} />
 <div class="message-list" {hidden}>
-  <table bind:this={table} style:width={tableWidth ? `${tableWidth}px` : undefined}>
+  <table bind:this={table} use:observeSize style:width="100%">
     <thead><tr>
       {#each columns as key (key)}
         <th data-column={key} style:width={widths ? `${widths[key] ?? minimum[key]}px` : undefined} aria-sort={sort.key === key ? (sort.direction === 1 ? 'ascending' : 'descending') : 'none'}>
           <button type="button" class="column-label" aria-label={`${labels[key]} column. Click to sort. Drag or use Alt and arrow keys to move.`} use:columnControl={{ key }}>
             {labels[key]}<span class="column-sort" aria-hidden="true">{sort.key === key ? (sort.direction === 1 ? '▲' : '▼') : ''}</span>
-          </button><button type="button" class="column-resize" aria-label={`Resize ${labels[key]} column`} use:columnControl={{ key, resize: true }}></button>
+          </button>{#if visibleColumns.includes(key) && key !== visibleColumns.at(-1)}<button type="button" class="column-resize" aria-label={`Resize ${labels[key]} column`} use:columnControl={{ key, resize: true }}></button>{/if}
         </th>
       {/each}
     </tr></thead>

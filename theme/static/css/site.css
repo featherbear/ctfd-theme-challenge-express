@@ -1,4 +1,7 @@
 /* Svelte player pages retain the XP chrome and light content surfaces. */
+.message-list .column-resize, .message-list .column-resize:hover { cursor: col-resize !important; touch-action: none; }
+.message-list th[data-column=solves] { width: 70px; }
+.message-list th[data-column=category] { width: 200px; }
 .challenge-metadata { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
 .solve-count { border: 0; background: none; padding: 0; color: #164d9e; text-decoration: underline; cursor: pointer; }
 .solve-count:hover { background: none; color: #103870; }
