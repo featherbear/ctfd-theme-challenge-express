@@ -26,7 +26,6 @@
       return 'No challenges found.';
     }
     if (notice) return notice;
-    if (view === 'all') return `${challenges.length - unread.length} of ${challenges.length} challenges solved`;
     return '';
   });
   $effect(() => {
@@ -101,7 +100,7 @@
     <h1 id="folder-heading">{folder}</h1>
     <p id="board-status" role="status">{boardStatus}</p>
     <button id="retry" hidden={!loadError} type="button" onclick={load}>Try again</button>
-    <ChallengeTable challenges={visible} solvesEnabled={challenges.some(c => Number.isInteger(c.solves))} defaultOrder={config.themeSettings?.challenge_order} onopen={open} hidden={reading} />
+    <ChallengeTable challenges={visible} solvesEnabled={challenges.some(c => Number.isInteger(c.solves))} defaultOrder={config.themeSettings?.challenge_order} onopen={open} hidden={reading || (Boolean(search.trim()) && visible.length === 0)} />
     <section id="reader" hidden={!reading} aria-label="Challenge message">
       <button id="back" type="button" bind:this={backButton} onclick={() => back()}>Back to challenges</button>
       <div id="message">

@@ -77,7 +77,7 @@ const base = process.env.CTFD_URL || 'http://127.0.0.1:8000';
     values = await counts();
     assert.deepEqual(values, [...values].sort((a, b) => b - a));
     await page.locator('#search').fill('no matching challenges');
-    assert(await column.isVisible(), 'Solves column remains available when filtering returns no rows');
+    assert.equal(await column.isVisible(), false, 'Headers are hidden when filtering returns no rows');
     await page.locator('#search').fill('');
     await column.locator('.column-label').focus();
     await page.keyboard.press('Alt+ArrowLeft');
