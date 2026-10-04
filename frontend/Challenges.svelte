@@ -17,6 +17,18 @@
     ...categories.map(name => ({ name, type: 'category', count: unread.filter(c => c.category === name).length }))
   ]);
   let visible = $derived(challenges.filter(c => (view === 'all' || (view === 'unread' ? !c.solved_by_me : c.category === folder)) && `${c.name} ${c.category}`.toLowerCase().includes(search.toLowerCase().trim())));
+  let boardStatus = $derived.by(() => {
+    if (loadError) return loadError;
+    if (loading) return 'Loading challenges...';
+    if (view === 'unread' && unread.length === 0) return 'No unsolved challenges, you legend!';
+    if (!visible.length) {
+      if (search.trim()) return `No ${view === 'unread' ? 'unsolved challenges' : 'challenges'} matching '${search}' found`;
+      return 'No challenges found.';
+    }
+    if (notice) return notice;
+    if (view === 'all') return `${challenges.length - unread.length} of ${challenges.length} challenges solved`;
+    return '';
+  });
   $effect(() => {
     const title = `${config.appName} - ${folder}`;
     document.title = title;
@@ -87,7 +99,7 @@
   </aside>
   <section class="express-main" aria-label="Challenges">
     <h1 id="folder-heading">{folder}</h1>
-    <p id="board-status" role="status">{loadError || (loading ? 'Loading challenges...' : notice || (visible.length ? '' : 'No challenges found.'))}</p>
+    <p id="board-status" role="status">{boardStatus}</p>
     <button id="retry" hidden={!loadError} type="button" onclick={load}>Try again</button>
     <ChallengeTable challenges={visible} solvesEnabled={challenges.some(c => Number.isInteger(c.solves))} defaultOrder={config.themeSettings?.challenge_order} onopen={open} hidden={reading} />
     <section id="reader" hidden={!reading} aria-label="Challenge message">
