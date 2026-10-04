@@ -18,7 +18,7 @@
     const value = c => ({ status: Number(c.solved_by_me), subject: c.name, category: c.category, points: c.value, solves: c.solves ?? -1, id: c.id })[sortKey];
     return [...challenges].sort((a, b) => {
       const difference = ['id', 'points', 'status', 'solves'].includes(sortKey) ? value(a) - value(b) : collator.compare(value(a), value(b));
-      return difference * sort.direction || a.id - b.id;
+      return difference * sort.direction || collator.compare(a.name, b.name) || a.id - b.id;
     });
   });
   function fit() {
