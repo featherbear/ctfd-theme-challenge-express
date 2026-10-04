@@ -3817,7 +3817,7 @@ function Jl(t, e) {
   });
   var J = d(M, 2), $ = H(J), ie = d(j, 2), X = k(ie), V = H(X, !0), A = d(X, 2), Z = H(A, !0), le = d(A, 2), ve = d(le, 2);
   {
-    let q = /* @__PURE__ */ ce(() => i(r).some((Ae) => Number.isInteger(Ae.solves))), ne = /* @__PURE__ */ ce(() => e.config.themeSettings?.challenge_order), _e = /* @__PURE__ */ ce(() => i(s) || !!i(l).trim() && i(w).length === 0);
+    let q = /* @__PURE__ */ ce(() => i(r).some((Ae) => Number.isInteger(Ae.solves))), ne = /* @__PURE__ */ ce(() => e.config.themeSettings?.challenge_order), _e = /* @__PURE__ */ ce(() => i(s) || !!i(l).trim() && i(w).length === 0 || i(a) === "unread" && i(E).length === 0);
     Cl(ve, {
       get challenges() {
         return i(w);

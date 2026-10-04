@@ -41,6 +41,7 @@ const base = process.env.CTFD_URL || 'http://127.0.0.1:8000';
     await expectStatus('');
     await page.locator('#folders [data-view="unread"]').click();
     await expectStatus('No unsolved challenges, you legend!');
+    assert.equal(await page.locator('.message-list').isVisible(), false);
     await page.locator('#search').fill(query);
     await expectStatus('No unsolved challenges, you legend!');
     await page.locator('#all-challenges').click();
