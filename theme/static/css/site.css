@@ -1,4 +1,8 @@
 /* Svelte player pages retain the XP chrome and light content surfaces. */
+.challenge-metadata { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+.solve-count { border: 0; background: none; padding: 0; color: #164d9e; text-decoration: underline; cursor: pointer; }
+.solve-count:hover { background: none; color: #103870; }
+.solves-dialog { width: 560px; max-height: calc(100dvh - 32px); overflow: auto; }
 .auth-page { max-width: 540px; margin: 0 auto; }
 .auth-actions { display: flex; justify-content: flex-end; padding-top: 12px; }
 .settings-layout { display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 32px; }

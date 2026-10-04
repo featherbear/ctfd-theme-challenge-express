@@ -2,9 +2,11 @@
   import { onDestroy, untrack } from 'svelte';
   import { api } from './api.js';
   import Hint from './Hint.svelte';
+  import Solves from './Solves.svelte';
   let { challenge, onattempt } = $props();
   let flag = $state(''), sending = $state(false), message = $state(''), status = $state('');
   let attempts = $state(untrack(() => challenge.attempts));
+  let solves = $state(untrack(() => challenge.solves));
   let active = true;
   let feedback = $derived(message || (challenge.solved_by_me ? 'Correct flag received.' : ''));
   let feedbackStyle = $derived(status || (sending ? 'pending' : challenge.solved_by_me ? 'success' : ''));
@@ -31,10 +33,11 @@
       status = ['correct', 'already_solved'].includes(result.status) ? 'success' : held ? 'info' : 'error';
       if (result.status === 'authentication_required') location.href = `${window.init.urlRoot}/login?next=${encodeURIComponent(location.pathname + location.hash)}`;
       if (result.status === 'correct') flag = '';
-      if (challenge.max_attempts) {
+      if (challenge.max_attempts || ['correct', 'already_solved'].includes(result.status)) {
         const updated = await api(`/challenges/${challenge.id}`);
         if (!active) return;
         attempts = updated.attempts;
+        solves = updated.solves;
       }
       await onattempt(result);
     } catch (error) { if (active) { message = error.message; status = 'error'; } }
@@ -44,7 +47,7 @@
 
 <header class="message-header">
   <h2>{challenge.name}</h2>
-  <div>Category: {challenge.category} &nbsp; Points: {challenge.value}</div>
+  <div class="challenge-metadata"><span>Category: {challenge.category}</span><span>Points: {challenge.value}</span><Solves challengeId={challenge.id} challengeName={challenge.name} count={solves} /></div>
   {#if challenge.tags?.length}
     <div class="challenge-tags"><span>Tags:</span>{#each challenge.tags as tag}<span class="challenge-tag">{typeof tag === 'string' ? tag : tag.value}</span>{/each}</div>
   {/if}

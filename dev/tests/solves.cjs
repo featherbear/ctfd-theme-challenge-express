@@ -1,0 +1,56 @@
+const assert = require('node:assert/strict');
+const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
+const base = process.env.CTFD_URL || 'http://127.0.0.1:8000';
+(async () => {
+  const browser = await chromium.launch({ channel: 'chrome', headless: true });
+  const page = await browser.newPage();
+  const errors = [];
+  page.on('pageerror', error => errors.push(error.message));
+  try {
+    await page.goto(`${base}/login`);
+    await page.locator('#name').fill('player');
+    await page.locator('#password').fill('express-player-local');
+    await page.locator('#_submit').click();
+    await page.waitForURL('**/challenges');
+    const open = async () => {
+      await page.getByRole('button', { name: 'Welcome to your inbox', exact: true }).click();
+      await page.locator('#flag').waitFor();
+    };
+    await open();
+    const id = Number(new URL(page.url()).hash.split('-').pop());
+    const expected = (await (await page.request.get(`${base}/api/v1/challenges/${id}/solves`)).json()).data;
+    assert(expected.length > 0, 'Seeded welcome challenge needs a solve for this test');
+    await page.locator('.solve-count').click();
+    await page.locator('.solves-dialog tbody tr').first().waitFor();
+    assert.equal(await page.locator('.solves-dialog tbody tr').count(), expected.length);
+    assert.equal(await page.locator('.solves-dialog tbody a').first().innerText(), expected[0].name);
+    assert.equal(await page.locator('.solves-dialog time').first().getAttribute('datetime'), expected[0].date);
+    await page.keyboard.press('Escape');
+    assert(await page.locator('.solve-count').evaluate(el => el === document.activeElement));
+    let fail = true;
+    await page.route(`**/api/v1/challenges/${id}/solves`, route => fail ? route.fulfill({ status: 503, json: { success: false, message: 'Solves temporarily unavailable' } }) : route.continue());
+    await page.locator('.solve-count').click();
+    await page.locator('.solves-dialog .alert-danger').waitFor();
+    fail = false;
+    await page.getByRole('button', { name: 'Retry', exact: true }).click();
+    await page.locator('.solves-dialog tbody tr').first().waitFor();
+    await page.setViewportSize({ width: 390, height: 844 });
+    const bounds = await page.locator('.solves-dialog').boundingBox();
+    assert(bounds.x >= 0 && bounds.x + bounds.width <= 390);
+    await page.getByRole('button', { name: 'Close', exact: true }).click();
+    let count = 0;
+    await page.route(`**/api/v1/challenges/${id}`, async route => {
+      const response = await route.fetch();
+      const data = await response.json(); data.data.solves = count;
+      await route.fulfill({ response, json: data });
+    });
+    await page.locator('#back').click(); await open();
+    assert.equal(await page.locator('.challenge-solves').innerText(), 'Total solves: 0');
+    assert.equal(await page.locator('.solve-count').count(), 0);
+    count = null;
+    await page.locator('#back').click(); await open();
+    assert.equal(await page.locator('.challenge-solves').count(), 0);
+    assert.deepEqual(errors, []);
+    console.log('PASS: real solve users/times, modal close/focus, error retry, mobile bounds, zero and hidden counts');
+  } finally { await browser.close(); }
+})().catch(error => { console.error(error); process.exitCode = 1; });
