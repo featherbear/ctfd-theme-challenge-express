@@ -1,4 +1,5 @@
 /* Svelte player pages retain the XP chrome and light content surfaces. */
+.message-list .column-sort { display: inline-block; width: 10px; text-align: center; }
 .message-list .column-resize, .message-list .column-resize:hover { cursor: col-resize !important; touch-action: none; }
 .message-list th[data-column=solves] { width: 70px; }
 .message-list th[data-column=category] { width: 200px; }
