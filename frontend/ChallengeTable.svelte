@@ -28,9 +28,17 @@
     const preferred = {};
     for (const key of columns) {
       const heading = table.querySelector(`th[data-column="${key}"] .column-label`);
-      measureContext.font = heading ? getComputedStyle(heading).font : 'bold 12px Tahoma';
-      // Reserve room for the sort arrow and the resize target as well as text.
-      minimum[key] = Math.ceil(measureContext.measureText(labels[key]).width) + 32;
+      const headingStyle = heading ? getComputedStyle(heading) : null;
+      measureContext.font = headingStyle?.font || 'bold 12px Tahoma';
+      const horizontalSpace = style => style ? ['paddingLeft', 'paddingRight', 'borderLeftWidth', 'borderRightWidth']
+        .reduce((sum, property) => sum + (parseFloat(style[property]) || 0), 0) : 0;
+      const arrow = heading?.querySelector('.column-sort');
+      const arrowStyle = arrow ? getComputedStyle(arrow) : null;
+      const arrowSpace = arrow ? arrow.getBoundingClientRect().width
+        + (parseFloat(arrowStyle.marginLeft) || 0) + (parseFloat(arrowStyle.marginRight) || 0) : 15;
+      // Include both cell and button chrome, plus the inactive arrow slot.
+      minimum[key] = Math.ceil(measureContext.measureText(labels[key]).width + arrowSpace
+        + horizontalSpace(headingStyle) + horizontalSpace(heading ? getComputedStyle(heading.closest('th')) : null)) + 2;
       const cell = table.querySelector(`td[data-column="${key}"]`);
       const style = cell ? getComputedStyle(cell) : null;
       measureContext.font = style ? `bold ${style.fontSize} ${style.fontFamily}` : 'bold 12px Tahoma';
