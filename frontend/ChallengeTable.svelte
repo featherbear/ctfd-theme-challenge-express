@@ -6,6 +6,8 @@
   const minimum = { status: 55, subject: 130, category: 90, points: 65, solves: 65 };
   const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' });
   let order = $state([...keys]), widths = $state(null), table;
+  let userSized = false;
+  const measureContext = document.createElement('canvas').getContext('2d');
   let columns = $derived(order.filter(key => key !== 'solves' || solvesEnabled));
   // The administrator's order is a page-load default, not a live override.
   let sort = $state({ key: untrack(() => defaultOrder) === 'name' ? 'subject' : 'id', direction: 1 });
@@ -23,7 +25,19 @@
     if (!table || hidden) return;
     const available = table.parentElement.clientWidth;
     if (!available) return;
-    const next = { status: 60, subject: 130, points: 75, category: 200, solves: 70, ...widths };
+    const preferred = {};
+    for (const key of columns) {
+      const heading = table.querySelector(`th[data-column="${key}"] .column-label`);
+      measureContext.font = heading ? getComputedStyle(heading).font : 'bold 12px Tahoma';
+      // Reserve room for the sort arrow and the resize target as well as text.
+      minimum[key] = Math.ceil(measureContext.measureText(labels[key]).width) + 32;
+      const cell = table.querySelector(`td[data-column="${key}"]`);
+      const style = cell ? getComputedStyle(cell) : null;
+      measureContext.font = style ? `bold ${style.fontSize} ${style.fontFamily}` : 'bold 12px Tahoma';
+      const content = challenges.map(c => ({ subject: c.name, category: c.category, points: c.value, solves: c.solves ?? '-' })[key] ?? '');
+      preferred[key] = Math.max(minimum[key], ...content.map(text => Math.ceil(measureContext.measureText(String(text)).width) + 24));
+    }
+    const next = { ...preferred, ...(userSized ? widths : {}) };
     let remaining = available - visibleColumns.reduce((sum, key) => sum + next[key], 0);
     if (remaining >= 0) next.subject += remaining;
     else {
@@ -43,8 +57,9 @@
     observer.observe(node.parentElement);
     return { destroy() { observer.disconnect(); } };
   }
-  $effect(() => { visibleColumns; hidden; untrack(fit); });
+  $effect(() => { visibleColumns; hidden; challenges; untrack(() => tick().then(fit)); });
   function resizePair(key, delta, initial = widths) {
+    userSized = true;
     const next = visibleColumns[visibleColumns.indexOf(key) + 1];
     if (!next) return;
     const change = Math.max(Math.min(0, minimum[key] - initial[key]), Math.min(delta, Math.max(0, initial[next] - minimum[next])));
