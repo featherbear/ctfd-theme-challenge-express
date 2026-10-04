@@ -3190,7 +3190,7 @@ var bl = /* @__PURE__ */ C('<th><button type="button" class="column-label"> <spa
 function Sl(t, e) {
   Re(e, !0);
   let r = Ot(e, "hidden", 3, !1), n = Ot(e, "solvesEnabled", 3, !1);
-  const a = ["status", "subject", "category", "points", "solves"], l = {
+  const a = ["status", "subject", "points", "category", "solves"], l = {
     status: "Status",
     subject: "Subject",
     category: "Category",

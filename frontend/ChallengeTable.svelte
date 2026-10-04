@@ -1,7 +1,7 @@
 <script>
   import { tick, untrack } from 'svelte';
   let { challenges, defaultOrder, onopen, hidden = false, solvesEnabled = false } = $props();
-  const keys = ['status', 'subject', 'category', 'points', 'solves'];
+  const keys = ['status', 'subject', 'points', 'category', 'solves'];
   const labels = { status: 'Status', subject: 'Subject', category: 'Category', points: 'Points', solves: 'Solves' };
   const minimum = { status: 55, subject: 130, category: 90, points: 65, solves: 65 };
   const collator = new Intl.Collator(undefined, { numeric: true, sensitivity: 'base' });
