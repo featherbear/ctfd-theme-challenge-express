@@ -1,0 +1,6 @@
+{% extends "base.html" %}
+{% from "components/form-data.html" import fields_data %}
+{% block page_data %}
+{% set form = Forms.auth.RegistrationForm(name=name|default(''), email=email|default('')) %}
+{"kind":"register","fields":{{ fields_data([form.name, form.email, form.password] + form.extra) }},"privacy":{{ (Configs.privacy_link or '')|tojson }},"terms":{{ (Configs.tos_link or '')|tojson }},"showTerms":{{ (Configs.tos_or_privacy or false)|tojson }}}
+{% endblock %}

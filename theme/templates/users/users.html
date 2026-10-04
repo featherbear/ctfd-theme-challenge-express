@@ -1,0 +1,6 @@
+{% extends "base.html" %}
+{% from "components/form-data.html" import fields_data %}
+{% block page_data %}
+{% set form = Forms.users.PublicUserSearchForm(field=field, q=q) %}
+{"kind":"users","fields":{{ fields_data([form.field,form.q]) }},"users":[{% for user in users.items %}{{ {'id':user.id,'name':user.name,'website':user.website,'affiliation':user.affiliation,'country':lookup_country_code(user.country) if user.country else '', 'bracket':user.bracket.name if user.bracket_id else '', 'official':user.oauth_id != None}|tojson }}{{ ',' if not loop.last }}{% endfor %}],"scoresVisible":{{ scores_visible()|tojson }},"page":{{ users.page|tojson }},"pages":{{ users.pages|tojson }},"total":{{ users.total|tojson }}}
+{% endblock %}

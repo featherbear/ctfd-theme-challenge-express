@@ -1,0 +1,2 @@
+{% extends "base.html" %}
+{% block page_data %}{"kind":"confirm","initial":{{ (request.args.get('flow') == 'init')|tojson }}}{% endblock %}

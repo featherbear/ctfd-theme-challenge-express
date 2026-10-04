@@ -13,8 +13,8 @@
   {{ meta | safe }}
   {% block stylesheets %}{{ Assets.css("assets/scss/main.scss") }}{% endblock %}
   <link rel="stylesheet" href="{{ request.script_root }}/themes/challenge-express/static/css/express.css">
-  <link rel="stylesheet" href="{{ request.script_root }}/themes/challenge-express/static/css/legibility.css?v=9">
-  <script src="{{ request.script_root }}/themes/challenge-express/static/js/charts.js"></script>
+  <link rel="stylesheet" href="{{ request.script_root }}/themes/challenge-express/static/css/legibility.css?v=10">
+  <link rel="stylesheet" href="{{ request.script_root }}/themes/challenge-express/static/css/site.css?v=1">
   {{ Plugins.styles }}
   <script>
     window.init = {
@@ -28,31 +28,29 @@
   </script>
   {{ Configs.theme_header }}
 </head>
-<body class="{% block body_class %}{% endblock %}">
-  <div class="express-window">
-    <header class="express-title window-drag-handle" tabindex="0" role="button" aria-label="Move application window. Drag or use arrow keys." title="Drag to move, or focus and use arrow keys">{% if app_logo %}<img class="express-brand-icon" src="{{ app_logo }}" alt="" draggable="false">{% else %}<i class="fas fa-envelope" aria-hidden="true"></i>{% endif %} <span id="window-title">{{ display_title }}</span></header>
-    {% block navigation %}{% include "components/navbar.html" %}{% endblock %}
-    <main id="main-content">{% block content %}{% endblock %}</main>
-    <footer class="express-status">{{ Configs.ctf_name }} <span>Powered by <a href="https://ctfd.io">CTFd</a></span></footer>
-  </div>
-  <div class="express-taskbar"><a href="{{ url_for('challenges.listing') }}" class="express-start">Start</a><span>{{ app_name }}</span></div>
-  {% include "components/snackbar.html" %}
-  {% include "components/notifications.html" %}
-  <script>
-    // Keep both inherited user profiles in visual and reading order:
-    // solve breakdowns, score history, awards, then solves.
-    const userGraphs = document.querySelector('[x-data="UserGraphs"]');
-    if (userGraphs) {
-      const firstSection = [...userGraphs.parentElement.children].find(element => element.classList.contains('row'));
-      if (firstSection && firstSection !== userGraphs) firstSection.before(userGraphs);
-    }
-    // CTFd 3.8.7 evaluates profile category loops before its async solves load.
-    // Guard the inherited template until UserGraphs has received the response.
-    document.querySelectorAll('template[x-for="category in getCategoryBreakdown()"]')
-      .forEach(template => template.setAttribute('x-for', 'category in (solves ? getCategoryBreakdown() : []).map((category, index) => ({...category, color: window.expressChartPalette[index % window.expressChartPalette.length]}))'));
-  </script>
-  {% block scripts %}{{ Assets.js("assets/js/page.js") }}{% endblock %}
-  <script src="{{ request.script_root }}/themes/challenge-express/static/js/window.js?v=1"></script>
+<body>
+  {% set nav = namespace(primary=[], account=[]) %}
+  {% for page in Plugins.user_menu_pages %}{% set nav.primary = nav.primary + [{'label':page.title, 'href':page.route, 'target':page.link_target or ''}] %}{% endfor %}
+  {% set nav.primary = nav.primary + [{'label':'Challenges','href':url_for('challenges.listing')}] %}
+  {% if Configs.account_visibility != 'admins' %}
+    {% set nav.primary = nav.primary + [{'label':'Users','href':url_for('users.listing')}] %}
+    {% if Configs.score_visibility != 'admins' %}{% set nav.primary = nav.primary + [{'label':'Scoreboard','href':url_for('scoreboard.listing')}] %}{% endif %}
+  {% endif %}
+  {% if authed() %}
+    {% if is_admin() %}{% set nav.account = nav.account + [{'label':'Admin Panel','href':url_for('admin.view')}] %}{% endif %}
+    {% set nav.account = nav.account + [{'label':'Notifications','href':url_for('views.notifications')}, {'label':'Profile','href':url_for('users.private')}, {'label':'Settings','href':url_for('views.settings')}, {'label':'Log out','href':url_for('auth.logout')}] %}
+  {% else %}
+    {% if registration_visible() %}{% set nav.account = nav.account + [{'label':'Register','href':url_for('auth.register')}] %}{% endif %}
+    {% set nav.account = nav.account + [{'label':'Log on','href':url_for('auth.login')}] %}
+  {% endif %}
+  {% from "components/form-data.html" import messages_data %}
+  <script id="site-data" type="application/json">{"title":{{ display_title|tojson }},"appName":{{ app_name|tojson }},"logo":{{ app_logo|tojson }},"eventName":{{ Configs.ctf_name|tojson }},"primary":{{ nav.primary|tojson }},"account":{{ nav.account|tojson }},"registration":{{ registration_visible()|tojson }},"oauth":{{ (url_for('auth.oauth_login') if integrations.mlc() else '')|tojson }},"errors":{{ messages_data(errors|default([])) }},"infos":{{ messages_data(infos|default([])) }}}</script>
+  <script id="page-data" type="application/json">{% block page_data %}{"kind":"fallback"}{% endblock %}</script>
+  <template id="fallback-content">{% block content %}{% endblock %}</template>
+  <div id="site-app"><p role="status">Loading {{ app_name }}...</p></div>
+  <noscript>This site requires JavaScript. Please enable it to continue.</noscript>
+  {% block scripts %}{% endblock %}
+  {% include "components/site-script.html" %}
   {{ Plugins.scripts }}
   {{ Configs.theme_footer }}
 </body>

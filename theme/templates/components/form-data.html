@@ -1,0 +1,9 @@
+{% macro field_data(field) -%}
+{"name":{{ field.name|tojson }},"id":{{ field.id|tojson }},"label":{{ (field.label.text|string)|tojson }},"type":{{ field.type|tojson }},"value":{{ ('' if field.type == 'PasswordField' else field.data)|tojson }},"required":{{ (field.flags.required == true)|tojson }},"description":{{ (field.description|string)|tojson }},"choices":[{% for value, label in field.choices|default([]) %}{{ [value, label|string]|tojson }}{{ ',' if not loop.last }}{% endfor %}]}
+{%- endmacro %}
+{% macro messages_data(messages) -%}
+[{% for message in messages %}{{ ({'html':message|string} if message is escaped else {'text':message|string})|tojson }}{{ ',' if not loop.last }}{% endfor %}]
+{%- endmacro %}
+{% macro fields_data(fields) -%}
+[{% for field in fields %}{{ field_data(field) }}{{ ',' if not loop.last }}{% endfor %}]
+{%- endmacro %}

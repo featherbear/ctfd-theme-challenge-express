@@ -43,4 +43,10 @@ The login page uses a centered XP Log On window on the blue desktop: blue title 
 
 Shared CTFd pages use dark headings and body text on cream or white. Muted text is `#465365`, links `#164d9e`, errors `#982c21`, and success text `#255b20`. White labels use darker blue/green chrome. Charts use explicit white backgrounds, dark labels, and a series palette with minimum 6.8:1 contrast against white. Category/solve indicators use the same darker palette. `dev/tests/contrast.cjs` checks rendered text; browser screenshots cover the XP prompt, scoreboard and profile charts.
 
+### Svelte player interface
+
+The player shell, navigation, authentication, challenges, settings, user directory, profiles, scoreboard, notifications and error screens are Svelte components in `frontend/`. Jinja templates serialize server-owned data and form definitions. Custom page HTML remains administrator-authored content rendered inside the Svelte shell. Main-window and logon dragging share a bounded Svelte action with keyboard support and resize cleanup.
+
+Profiles put solve/category breakdowns and the score history before awards and solves. ECharts is loaded on demand for score pages, resized with its container, and disposed when unmounted. Charts use the shared palette in `frontend/colors.js`; their information is also available in the adjacent tables. Page content scrolls inside the bounded application window, above the fixed taskbar.
+
 Desktop and mobile screenshots inspected in two bounded passes. Fixed search/icon ID collision, desktop reply visibility, narrow status-column clipping, and white-label contrast. Compact text, inset pane boundaries, gradient title chrome, and segmented progress intentionally preserve the requested period aesthetic. Review was performed in-session; no independent reviewer was used.

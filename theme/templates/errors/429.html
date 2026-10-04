@@ -1,0 +1,2 @@
+{% extends "base.html" %}
+{% block page_data %}{"kind":"error","code":429,"heading":"Please wait before trying again","message":"Too Many Requests","detail":{{ (error|default('')|string)|tojson }}}{% endblock %}

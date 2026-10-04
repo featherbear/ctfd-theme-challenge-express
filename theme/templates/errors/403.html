@@ -1,0 +1,2 @@
+{% extends "base.html" %}
+{% block page_data %}{"kind":"error","code":403,"heading":"You do not have permission to access this page","message":"Forbidden","detail":{{ (error|default('')|string)|tojson }}}{% endblock %}

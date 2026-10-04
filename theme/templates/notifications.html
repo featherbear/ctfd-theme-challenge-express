@@ -1,0 +1,2 @@
+{% extends "base.html" %}
+{% block page_data %}{"kind":"notifications","notifications":[{% for notification in notifications %}{{ {'id':notification.id,'title':notification.title,'html':notification.html|string,'date':notification.date|isoformat,'user_id':notification.user_id,'team_id':notification.team_id}|tojson }}{{ ',' if not loop.last }}{% endfor %}]}{% endblock %}

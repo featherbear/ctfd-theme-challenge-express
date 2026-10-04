@@ -1,0 +1,4 @@
+{% extends "base.html" %}
+{% block page_data %}
+{"kind":"profile","id":{{ user.id|tojson }},"name":{{ user.name|tojson }},"affiliation":{{ user.affiliation|tojson }},"country":{{ (lookup_country_code(user.country) if user.country else '')|tojson }},"website":{{ user.website|tojson }},"bracket":{{ (user.bracket.name if user.bracket_id else '')|tojson }},"official":{{ (user.oauth_id != None)|tojson }},"place":{{ account.place|tojson }},"score":{{ account.score|tojson }},"fields":[{% for field in user.fields %}{{ {'name':field.name,'value':field.value}|tojson }}{{ ',' if not loop.last }}{% endfor %}],"private":{% block private_profile %}false{% endblock %}}
+{% endblock %}

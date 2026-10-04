@@ -1,0 +1,6 @@
+{% extends "base.html" %}
+{% from "components/form-data.html" import fields_data %}
+{% block page_data %}
+{% set form = Forms.self.SettingsForm(name=name, email=email, country=country, affiliation=affiliation or '', website=website or '') %}
+{"kind":"settings","fields":{{ fields_data([form.name, form.email, form.confirm, form.password, form.affiliation, form.website, form.country] + form.extra) }},"tokens":[{% for token in tokens %}{{ {'id':token.id,'created':token.created|isoformat,'expiration':token.expiration|isoformat,'description':token.description or ''}|tojson }}{{ ',' if not loop.last }}{% endfor %}]}
+{% endblock %}

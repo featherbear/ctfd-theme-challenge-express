@@ -80,7 +80,7 @@
     <div id="folders">
       {#each folders as item, index (`${item.type}:${item.name}`)}
         {#if index === 2}<hr class="folder-divider">{/if}
-        <button type="button" class:active={view === item.type && folder === item.name} data-view={item.type} data-folder={item.name} onclick={() => changeFolder(item)}><i class={`fas fa-${item.type === 'unread' ? 'envelope' : 'folder'}`} aria-hidden="true"></i>{item.name}{item.type === 'all' ? '' : ` (${item.count})`}</button>
+        <button type="button" class:active={view === item.type && folder === item.name} data-view={item.type} data-folder={item.name} onclick={() => changeFolder(item)}><i class={`fas fa-${item.type === 'unread' ? 'envelope' : 'folder'}`} aria-hidden="true"></i>{item.name}{item.type !== 'all' && item.count > 0 ? ` (${item.count})` : ''}</button>
       {/each}
     </div>
     <p id="progress" aria-live="polite">{progressChallenges.filter(c => c.solved_by_me).length} of {progressChallenges.length} challenges solved</p>

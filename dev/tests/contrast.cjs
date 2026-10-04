@@ -7,12 +7,14 @@ const base = process.env.CTFD_URL || 'http://localhost:8000';
   const browser = await chromium.launch({channel:'chrome',headless:true});
   const page = await browser.newPage({viewport:{width:1440,height:1000}});
   const failures = [];
+  const { palette } = await import('../../frontend/colors.js');
   try {
     async function audit(path) {
       await page.goto(base + path);
+      await page.locator('.express-title:visible').first().waitFor();
       if (path === '/challenges') await page.locator('.open-challenge').first().waitFor();
       if (path === '/scoreboard') await page.locator('canvas').waitFor();
-      const result = await page.evaluate(() => {
+      const result = await page.evaluate(chartColors => {
         const rgb = value => value.match(/[\d.]+/g)?.map(Number);
         const luminance = color => color.slice(0,3).map(v => v / 255).map(v => v <= .04045 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4).reduce((sum,v,i) => sum + v * [.2126,.7152,.0722][i], 0);
         const ratio = (a,b) => { const x=luminance(a),y=luminance(b); return (Math.max(x,y)+.05)/(Math.min(x,y)+.05); };
@@ -41,9 +43,9 @@ const base = process.env.CTFD_URL || 'http://localhost:8000';
           checked++;
           if (contrast < (large ? 3 : 4.5)) failed.push({text:(text||el.value||el.name).slice(0,70),ratio:Number(contrast.toFixed(2)),color:style.color});
         }
-        const palette=(window.expressChartPalette||[]).map(hex => [1,3,5].map(i => parseInt(hex.slice(i,i+2),16)));
+        const palette=chartColors.map(hex => [1,3,5].map(i => parseInt(hex.slice(i,i+2),16)));
         return {checked,failed,minimumChartContrast:Math.min(...palette.map(color=>ratio(color,[255,255,255])))};
-      });
+      }, palette);
       console.log(path,JSON.stringify(result));
       failures.push(...result.failed.map(f => ({path,...f})));
       assert.ok(result.minimumChartContrast>=3,'chart palette contrast');
